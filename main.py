@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import os
+import csv
 
 
 def get_review_links(url: str):
@@ -24,8 +25,8 @@ def scrap_reviews(url: str):
     reviews = list()
     for content in reviews_contents:
         review = dict()
-        review['title'] = content.find('a').text
-        review['content'] = content.find('div', class_='text').text
+        review['title'] = content.find('a').text.strip()
+        review['content'] = content.find('div', class_='text').text.strip()
         reviews.append(review)
     return reviews
 
@@ -39,10 +40,15 @@ def main():
     
     for movie in movies:
         reviews = scrap_reviews(movie['review_link'])
-        file_path = os.path.join(folder_path, movie['name'] + '.txt')
-        with open(file_path, 'w', encoding="utf-8") as f:
+        file_path = os.path.join(folder_path, movie['name'] + '.csv')
+        # create file
+        with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+            fieldnames = reviews[0].keys()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
             for review in reviews:
-                f.write(review['title'] + '\n')
-                f.write(review['content'] + '\n')
+                writer.writerow(review)
 
-main()
+
+if __name__ == '__main__':
+    main()
